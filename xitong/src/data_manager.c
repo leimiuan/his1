@@ -14,6 +14,17 @@ PatientNode* inpatient_head = NULL;
 BedNode* bed_head = NULL;
 RecordNode* record_head = NULL;
 
+static void safe_copy_text(char* dest, size_t dest_size, const char* src) {
+    if (!dest || dest_size == 0) return;
+    if (!src) {
+        dest[0] = '\0';
+        return;
+    }
+
+    strncpy(dest, src, dest_size - 1);
+    dest[dest_size - 1] = '\0';
+}
+
 static void normalize_record_amounts(RecordNode* record) {
     if (!record) return;
 
@@ -47,14 +58,14 @@ static int parse_record_line_tab(RecordNode* record, char* line) {
     }
 
     if (count >= 11) {
-        strcpy(record->record_id, fields[0]);
-        strcpy(record->patient_id, fields[1]);
-        strcpy(record->doctor_id, fields[2]);
+        safe_copy_text(record->record_id, sizeof(record->record_id), fields[0]);
+        safe_copy_text(record->patient_id, sizeof(record->patient_id), fields[1]);
+        safe_copy_text(record->doctor_id, sizeof(record->doctor_id), fields[2]);
         record->type = (RecordType)atoi(fields[3]);
-        strcpy(record->date, fields[4]);
+        safe_copy_text(record->date, sizeof(record->date), fields[4]);
         record->queue_number = atoi(fields[5]);
         record->status = atoi(fields[6]);
-        strcpy(record->description, fields[7]);
+        safe_copy_text(record->description, sizeof(record->description), fields[7]);
         record->total_fee = strtod(fields[8], NULL);
         record->insurance_covered = strtod(fields[9], NULL);
         record->personal_paid = strtod(fields[10], NULL);
@@ -63,15 +74,15 @@ static int parse_record_line_tab(RecordNode* record, char* line) {
     }
 
     if (count >= 9) {
-        strcpy(record->record_id, fields[0]);
-        strcpy(record->patient_id, fields[1]);
-        strcpy(record->doctor_id, fields[2]);
+        safe_copy_text(record->record_id, sizeof(record->record_id), fields[0]);
+        safe_copy_text(record->patient_id, sizeof(record->patient_id), fields[1]);
+        safe_copy_text(record->doctor_id, sizeof(record->doctor_id), fields[2]);
         record->type = (RecordType)atoi(fields[3]);
         record->total_fee = strtod(fields[4], NULL);
         record->insurance_covered = strtod(fields[5], NULL);
         record->personal_paid = strtod(fields[6], NULL);
         record->status = atoi(fields[7]);
-        strcpy(record->description, fields[8]);
+        safe_copy_text(record->description, sizeof(record->description), fields[8]);
         record->queue_number = 0;
         record->date[0] = '\0';
         normalize_record_amounts(record);
@@ -247,7 +258,7 @@ void load_doctors(const char* filepath) {
     fgets(line, sizeof(line), file);
     while (fgets(line, sizeof(line), file)) {
         DoctorNode* new_node = (DoctorNode*)calloc(1, sizeof(DoctorNode));
-        if (sscanf(line, "%s %s %s", new_node->id, new_node->name, new_node->dept_id) >= 2) {
+        if (sscanf(line, "%31s %127s %31s", new_node->id, new_node->name, new_node->dept_id) >= 2) {
             new_node->next = doctor_head;
             doctor_head = new_node;
         } else { free(new_node); }
@@ -262,7 +273,7 @@ void load_medicines(const char* filepath) {
     fgets(line, sizeof(line), file);
     while (fgets(line, sizeof(line), file)) {
         MedicineNode* new_node = (MedicineNode*)calloc(1, sizeof(MedicineNode));
-        if (sscanf(line, "%s %s %lf %d", new_node->id, new_node->common_name, &new_node->price, &new_node->stock) >= 3) {
+        if (sscanf(line, "%31s %255s %lf %d", new_node->id, new_node->common_name, &new_node->price, &new_node->stock) >= 3) {
             new_node->next = medicine_head;
             medicine_head = new_node;
         } else { free(new_node); }
@@ -277,7 +288,7 @@ void load_departments(const char* filepath) {
     fgets(line, sizeof(line), file);
     while (fgets(line, sizeof(line), file)) {
         DepartmentNode* new_node = (DepartmentNode*)calloc(1, sizeof(DepartmentNode));
-        if (sscanf(line, "%s %s", new_node->id, new_node->name) >= 2) {
+        if (sscanf(line, "%31s %63s", new_node->id, new_node->name) >= 2) {
             new_node->next = dept_head;
             dept_head = new_node;
         } else { free(new_node); }
@@ -292,7 +303,7 @@ void load_beds(const char* filepath) {
     fgets(line, sizeof(line), file);
     while (fgets(line, sizeof(line), file)) {
         BedNode* new_node = (BedNode*)calloc(1, sizeof(BedNode));
-        if (sscanf(line, "%s %s %d %lf %s", new_node->bed_id, new_node->dept_id,
+        if (sscanf(line, "%31s %31s %d %lf %31s", new_node->bed_id, new_node->dept_id,
                    &new_node->is_occupied, &new_node->daily_fee, new_node->patient_id) >= 4) {
             new_node->next = bed_head;
             bed_head = new_node;
@@ -309,7 +320,7 @@ void load_outpatients(const char* filepath) {
     while (fgets(line, sizeof(line), file)) {
         PatientNode* new_node = (PatientNode*)calloc(1, sizeof(PatientNode));
         int ins;
-        if (sscanf(line, "%s %s %d %s %c %d %lf", new_node->id, new_node->name, &new_node->age,
+        if (sscanf(line, "%31s %127s %d %15s %c %d %lf", new_node->id, new_node->name, &new_node->age,
                    new_node->gender, &new_node->type, &ins, &new_node->account_balance) >= 6) {
             new_node->insurance = (InsuranceType)ins;
             new_node->next = outpatient_head;
@@ -327,7 +338,7 @@ void load_inpatients(const char* filepath) {
     while (fgets(line, sizeof(line), file)) {
         PatientNode* new_node = (PatientNode*)calloc(1, sizeof(PatientNode));
         int ins;
-        if (sscanf(line, "%s %s %d %s %c %d %lf %lf %s %s", new_node->id, new_node->name, &new_node->age,
+        if (sscanf(line, "%31s %127s %d %15s %c %d %lf %lf %31s %31s", new_node->id, new_node->name, &new_node->age,
                    new_node->gender, &new_node->type, &ins, &new_node->account_balance,
                    &new_node->hospital_deposit, new_node->admission_date, new_node->bed_id) >= 6) {
             new_node->insurance = (InsuranceType)ins;
