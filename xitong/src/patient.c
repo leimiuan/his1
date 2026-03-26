@@ -73,7 +73,7 @@ void patient_dashboard(PatientNode* me) {
                         generate_electronic_invoice(me, target);
                     }
                 } else {
-                    printf(COLOR_RED "未找到记录 %s 或无权访问。\n" COLOR_RESET);
+                    printf(COLOR_RED "未找到记录 %s 或无权访问。\n" COLOR_RESET, rec_id);
                 }
                 wait_for_enter();
                 break;
