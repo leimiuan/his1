@@ -55,6 +55,10 @@ BedNode* find_available_bed(const char* dept_id, WardType type);
 void add_new_record(const char* patient_id, const char* doctor_id, RecordType type, 
                     const char* description, double fee, int queue_num);
 
+// --- 值班排班表管理 ---
+void view_duty_schedule(const char* doctor_id_filter);
+int upsert_duty_schedule(const char* date, const char* slot, const char* dept_id, const char* doctor_id);
+int remove_duty_schedule(const char* date, const char* slot, const char* dept_id);
 /* ==========================================
  * 板块三：内存安全管理
  * 目标：遍历所有链表执行 free()，防止内存泄露

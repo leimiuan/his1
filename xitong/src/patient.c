@@ -38,10 +38,11 @@ void patient_dashboard(PatientNode* me) {
         printf("  [ 5 ] 查看排队状态\n");
         printf("  [ 6 ] 查看个人财务对账单\n");
         printf("  [ 7 ] 生成电子发票\n");
+        printf("  [ 8 ] 查看值班表\n");
         printf(COLOR_RED "  [ 0 ] 退出登录\n" COLOR_RESET);
         print_divider();
         
-        printf(COLOR_YELLOW "请选择服务项目 (0-7): " COLOR_RESET);
+        printf(COLOR_YELLOW "请选择服务项目 (0-8): " COLOR_RESET);
         choice = safe_get_int();
         
         switch (choice) {
@@ -78,6 +79,7 @@ void patient_dashboard(PatientNode* me) {
                 wait_for_enter();
                 break;
             }
+            case 8: view_duty_schedule(NULL); break;
             case 0: break;
             default: printf(COLOR_RED "无效的选择。\n" COLOR_RESET); wait_for_enter();
         }
@@ -296,8 +298,9 @@ void check_queue_status(PatientNode* patient) {
         if (strcmp(curr->patient_id, patient->id) == 0 && 
             curr->type == RECORD_REGISTRATION && 
             curr->status == 0) {
-            my_reg = curr;
-            break;
+            if (my_reg == NULL || curr->queue_number < my_reg->queue_number) {
+                my_reg = curr;
+            }
         }
         curr = curr->next;
     }

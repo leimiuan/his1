@@ -33,6 +33,7 @@ void show_main_menu() {
 int main() {
     // 设置控制台为 UTF-8 编码，防止 Windows 下中文乱码
     SetConsoleOutputCP(65001);
+    SetConsoleCP(65001);
     
     // 1. 系统启动与界面预热
     printf("\n" COLOR_BLUE "系统启动中，正在准备加载数据库...\n" COLOR_RESET);

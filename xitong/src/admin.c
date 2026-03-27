@@ -122,10 +122,7 @@ static int input_record_payload(char* patient_id,
 
     printf("请输入费用(元): ");
     *fee = safe_get_double();
-
-    printf("请输入排队号(无则填0): ");
-    *queue_number = safe_get_int();
-
+    *queue_number = 0;
     printf("请输入描述: ");
     safe_get_string(description, MAX_DESC_LEN);
 
@@ -170,11 +167,27 @@ static int parse_import_line(char* line,
 
     if (count >= 6) {
         strncpy(patient_id, fields[0], MAX_ID_LEN - 1);
+        patient_id[MAX_ID_LEN - 1] = '\0';
         strncpy(doctor_id, fields[1], MAX_ID_LEN - 1);
+        doctor_id[MAX_ID_LEN - 1] = '\0';
         *type = atoi(fields[2]);
         *fee = strtod(fields[3], NULL);
         *queue_number = atoi(fields[4]);
         strncpy(description, fields[5], MAX_DESC_LEN - 1);
+        description[MAX_DESC_LEN - 1] = '\0';
+        return 1;
+    }
+
+    if (count >= 5) {
+        strncpy(patient_id, fields[0], MAX_ID_LEN - 1);
+        patient_id[MAX_ID_LEN - 1] = '\0';
+        strncpy(doctor_id, fields[1], MAX_ID_LEN - 1);
+        doctor_id[MAX_ID_LEN - 1] = '\0';
+        *type = atoi(fields[2]);
+        *fee = strtod(fields[3], NULL);
+        *queue_number = 0;
+        strncpy(description, fields[4], MAX_DESC_LEN - 1);
+        description[MAX_DESC_LEN - 1] = '\0';
         return 1;
     }
 
@@ -182,9 +195,13 @@ static int parse_import_line(char* line,
         return 1;
     }
 
+    if (sscanf(line, "%31s %31s %d %lf %511[^\n]", patient_id, doctor_id, type, fee, description) == 5) {
+        *queue_number = 0;
+        return 1;
+    }
+
     return 0;
 }
-
 static void import_records_from_file(void) {
     char path[260] = {0};
     FILE* file = NULL;
@@ -463,6 +480,70 @@ static void query_records_in_time_range(void) {
     wait_for_enter();
 }
 
+static void manage_duty_schedule(void) {
+    int choice = -1;
+
+    while (choice != 0) {
+        char date[32] = {0};
+        char slot[32] = {0};
+        char dept_id[MAX_ID_LEN] = {0};
+        char doctor_id[MAX_ID_LEN] = {0};
+
+        clear_input_buffer();
+        print_header("值班排班管理");
+        printf("  [ 1 ] 查看值班表\n");
+        printf("  [ 2 ] 新增/更新排班\n");
+        printf("  [ 3 ] 删除排班\n");
+        printf(COLOR_RED "  [ 0 ] 返回上一级\n" COLOR_RESET);
+        print_divider();
+        printf(COLOR_YELLOW "请选择 (0-3): " COLOR_RESET);
+        choice = safe_get_int();
+
+        switch (choice) {
+            case 1:
+                view_duty_schedule(NULL);
+                break;
+            case 2:
+                printf("请输入排班日期 (YYYY-MM-DD): ");
+                safe_get_string(date, sizeof(date));
+                printf("请输入班次 (上午/下午/夜班): ");
+                safe_get_string(slot, sizeof(slot));
+                printf("请输入科室ID: ");
+                safe_get_string(dept_id, sizeof(dept_id));
+                printf("请输入医生ID: ");
+                safe_get_string(doctor_id, sizeof(doctor_id));
+
+                if (upsert_duty_schedule(date, slot, dept_id, doctor_id)) {
+                    printf(COLOR_GREEN "排班保存成功。\n" COLOR_RESET);
+                } else {
+                    printf(COLOR_RED "排班保存失败：请检查日期格式、科室/医生ID，且医生需属于该科室。\n" COLOR_RESET);
+                }
+                wait_for_enter();
+                break;
+            case 3:
+                printf("请输入排班日期 (YYYY-MM-DD): ");
+                safe_get_string(date, sizeof(date));
+                printf("请输入班次: ");
+                safe_get_string(slot, sizeof(slot));
+                printf("请输入科室ID: ");
+                safe_get_string(dept_id, sizeof(dept_id));
+
+                if (remove_duty_schedule(date, slot, dept_id)) {
+                    printf(COLOR_GREEN "排班删除成功。\n" COLOR_RESET);
+                } else {
+                    printf(COLOR_RED "未找到对应排班，删除失败。\n" COLOR_RESET);
+                }
+                wait_for_enter();
+                break;
+            case 0:
+                break;
+            default:
+                printf(COLOR_RED "无效的选择。\n" COLOR_RESET);
+                wait_for_enter();
+                break;
+        }
+    }
+}
 void admin_subsystem() {
     char pwd[32];
     int choice = -1;
@@ -504,10 +585,11 @@ void admin_subsystem() {
         printf("  [13 ] 按医生工号查询诊疗信息\n");
         printf("  [14 ] 按患者信息查询历史诊疗\n");
         printf("  [15 ] 按时间范围查询诊疗信息\n");
+        printf("  [16 ] 排班表管理\n");
         printf(COLOR_RED "  [ 0 ] 返回主菜单\n" COLOR_RESET);
         print_divider();
 
-        printf(COLOR_YELLOW "请选择管理项目 (0-15): " COLOR_RESET);
+        printf(COLOR_YELLOW "请选择管理项目 (0-16): " COLOR_RESET);
         choice = safe_get_int();
 
         switch (choice) {
@@ -526,6 +608,7 @@ void admin_subsystem() {
             case 13: query_records_by_doctor(); break;
             case 14: query_records_by_patient_keyword(); break;
             case 15: query_records_in_time_range(); break;
+            case 16: manage_duty_schedule(); break;
             case 0: break;
             default:
                 printf(COLOR_RED "无效的选择。\n" COLOR_RESET);

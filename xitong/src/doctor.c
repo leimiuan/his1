@@ -76,6 +76,7 @@ void doctor_subsystem() {
         printf("  [ 4 ] 药房发药服务 (核销单据)\n");
         printf("  [ 5 ] 结束当前就诊\n");
         printf("  [ 6 ] 查看本科室住院名单\n");
+        printf("  [ 7 ] 查看值班表\n");
         printf("  [ 9 ] 我的工作量统计\n");
         printf(COLOR_RED "  [ 0 ] 退出登录\n" COLOR_RESET);
         print_divider();
@@ -102,6 +103,7 @@ void doctor_subsystem() {
                 wait_for_enter();
                 break;
             case 6: view_department_inpatients(me); break;
+            case 7: view_duty_schedule(NULL); break;
             case 9: view_doctor_statistics(me); break;
             case 0: break;
             default: printf(COLOR_RED "无效的选择。\n" COLOR_RESET); wait_for_enter();
