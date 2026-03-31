@@ -1,0 +1,8 @@
+﻿mode=mixed-extreme-invalid-vehicle-invalid-menu-high-frequency-dispatch
+total=150
+failed=0
+duration_sec=61.46
+timestamp=2026-03-31 20:32:16
+vehicle_usage:
+AMB-A01=86
+AMB-A02=64

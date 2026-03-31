@@ -1,0 +1,97 @@
+function_def_count=121
+
+[F0_init] YES
+  init_system_data -> D:\C++\his1-main\his1-main\xitong\src\data_manager.c:824
+
+[F1_add] YES
+  add_record_interactive -> D:\C++\his1-main\his1-main\xitong\src\admin.c:231
+  import_records_from_file -> D:\C++\his1-main\his1-main\xitong\src\admin.c:316
+
+[F2_modify] YES
+  modify_record_with_revoke -> D:\C++\his1-main\his1-main\xitong\src\admin.c:416
+
+[F3_delete] YES
+  delete_record_with_revoke -> D:\C++\his1-main\his1-main\xitong\src\admin.c:462
+
+[F4_query_dept] YES
+  query_records_by_department -> D:\C++\his1-main\his1-main\xitong\src\admin.c:495
+
+[F5_query_doctor] YES
+  query_records_by_doctor -> D:\C++\his1-main\his1-main\xitong\src\admin.c:522
+
+[F6_query_patient] YES
+  query_records_by_patient_keyword -> D:\C++\his1-main\his1-main\xitong\src\admin.c:548
+
+[F7_stats_finance] YES
+  view_hospital_financial_report -> D:\C++\his1-main\his1-main\xitong\src\admin.c:1347
+
+[F8_stats_doctor] YES
+  analyze_historical_trends -> D:\C++\his1-main\his1-main\xitong\src\admin.c:1390
+  view_doctor_statistics -> D:\C++\his1-main\his1-main\xitong\src\doctor.c:709
+
+[F9_query_time] YES
+  query_records_in_time_range -> D:\C++\his1-main\his1-main\xitong\src\admin.c:590
+
+[F10_persist] YES
+  save_system_data -> D:\C++\his1-main\his1-main\xitong\src\data_manager.c:856
+
+[F11_patient] YES
+  patient_subsystem -> D:\C++\his1-main\his1-main\xitong\src\patient.c:545
+  patient_login -> D:\C++\his1-main\his1-main\xitong\src\patient.c:33
+  register_new_patient -> D:\C++\his1-main\his1-main\xitong\src\patient.c:454
+  view_personal_info -> D:\C++\his1-main\his1-main\xitong\src\patient.c:420
+  query_medical_records -> D:\C++\his1-main\his1-main\xitong\src\patient.c:501
+  patient_top_up -> D:\C++\his1-main\his1-main\xitong\src\patient.c:485
+  patient_pay_bill -> D:\C++\his1-main\his1-main\xitong\src\patient.c:375
+  check_queue_status -> D:\C++\his1-main\his1-main\xitong\src\patient.c:289
+  patient_self_register -> D:\C++\his1-main\his1-main\xitong\src\patient.c:130
+  call_ambulance_service -> D:\C++\his1-main\his1-main\xitong\src\patient.c:338
+  generate_electronic_invoice -> D:\C++\his1-main\his1-main\xitong\src\patient.c:533
+
+[F12_doctor] YES
+  doctor_subsystem -> D:\C++\his1-main\his1-main\xitong\src\doctor.c:155
+  view_my_queue -> D:\C++\his1-main\his1-main\xitong\src\doctor.c:312
+  call_next_patient -> D:\C++\his1-main\his1-main\xitong\src\doctor.c:341
+  prescribe_medicine_advanced -> D:\C++\his1-main\his1-main\xitong\src\doctor.c:635
+  dispense_medicine_service -> D:\C++\his1-main\his1-main\xitong\src\doctor.c:671
+  prescribe_checkup_service -> D:\C++\his1-main\his1-main\xitong\src\doctor.c:509
+  generate_checkup_report -> D:\C++\his1-main\his1-main\xitong\src\doctor.c:529
+  admission_service -> D:\C++\his1-main\his1-main\xitong\src\doctor.c:384
+  book_surgery_service -> D:\C++\his1-main\his1-main\xitong\src\doctor.c:453
+  transfer_patient_to_icu -> D:\C++\his1-main\his1-main\xitong\src\doctor.c:593
+
+[F13_admin] YES
+  admin_subsystem -> D:\C++\his1-main\his1-main\xitong\src\admin.c:1109
+  register_doctor -> D:\C++\his1-main\his1-main\xitong\src\admin.c:1197
+  delete_doctor -> D:\C++\his1-main\his1-main\xitong\src\admin.c:1249
+  manage_duty_schedule -> D:\C++\his1-main\his1-main\xitong\src\admin.c:640
+  medicine_stock_in -> D:\C++\his1-main\his1-main\xitong\src\admin.c:1286
+  view_inventory_report -> D:\C++\his1-main\his1-main\xitong\src\admin.c:1323
+
+[F14_ambulance] YES
+  ambulance_subsystem -> D:\C++\his1-main\his1-main\xitong\src\ambulance.c:51
+  add_ambulance_log -> D:\C++\his1-main\his1-main\xitong\src\data_manager.c:549
+
+[F16_bonus] YES
+  manage_operating_rooms -> D:\C++\his1-main\his1-main\xitong\src\admin.c:876
+  optimize_bed_allocation -> D:\C++\his1-main\his1-main\xitong\src\admin.c:1423
+
+[F15_realtime] YES
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\ambulance.c:142
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\ambulance.c:143
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\ambulance.c:144
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\ambulance.c:168
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\ambulance.c:169
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\ambulance.c:173
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\ambulance.c:174
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\admin.c:797
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\admin.c:798
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\admin.c:799
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\admin.c:815
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\admin.c:816
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\admin.c:818
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\admin.c:819
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\data_manager.c:566
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\data_manager.c:864
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\data_manager.c:865
+  save_hit -> D:\C++\his1-main\his1-main\xitong\src\data_manager.c:866

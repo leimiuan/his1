@@ -1,0 +1,60 @@
+﻿total_cases=48
+pass=48
+fail=0
+patient_id=P001 doctor_id=D030 dept_id=DEPT30 inpatient_id=I001 ambulance_id=AMB-A01
+
+[patient]
+option=1 status=PASS exit=0
+option=2 status=PASS exit=0
+option=3 status=PASS exit=0
+option=4 status=PASS exit=0
+option=5 status=PASS exit=0
+option=6 status=PASS exit=0
+option=7 status=PASS exit=0
+option=8 status=PASS exit=0
+option=9 status=PASS exit=0
+
+[doctor]
+option=1 status=PASS exit=0
+option=2 status=PASS exit=0
+option=3 status=PASS exit=0
+option=4 status=PASS exit=0
+option=5 status=PASS exit=0
+option=6 status=PASS exit=0
+option=7 status=PASS exit=0
+option=8 status=PASS exit=0
+option=9 status=PASS exit=0
+option=10 status=PASS exit=0
+option=11 status=PASS exit=0
+option=12 status=PASS exit=0
+option=13 status=PASS exit=0
+option=14 status=PASS exit=0
+
+[admin]
+option=1 status=PASS exit=0
+option=2 status=PASS exit=0
+option=3 status=PASS exit=0
+option=4 status=PASS exit=0
+option=5 status=PASS exit=0
+option=6 status=PASS exit=0
+option=7 status=PASS exit=0
+option=8 status=PASS exit=0
+option=9 status=PASS exit=0
+option=10 status=PASS exit=0
+option=11 status=PASS exit=0
+option=12 status=PASS exit=0
+option=13 status=PASS exit=0
+option=14 status=PASS exit=0
+option=15 status=PASS exit=0
+option=16 status=PASS exit=0
+option=17 status=PASS exit=0
+option=18 status=PASS exit=0
+option=19 status=PASS exit=0
+option=20 status=PASS exit=0
+
+[ambulance]
+option=1 status=PASS exit=0
+option=2 status=PASS exit=0
+option=3 status=PASS exit=0
+option=4 status=PASS exit=0
+option=5 status=PASS exit=0

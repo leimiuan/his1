@@ -1,0 +1,101 @@
+doc_paragraphs=118
+function_def_count=121
+
+[0 ???] status=?
+  found: init_system_data @ D:\C++\his1-main\his1-main\xitong\src\data_manager.c:824
+
+[1 ??] status=?
+  found: add_record_interactive @ D:\C++\his1-main\his1-main\xitong\src\admin.c:231
+  found: import_records_from_file @ D:\C++\his1-main\his1-main\xitong\src\admin.c:316
+
+[2 ??] status=?
+  found: modify_record_with_revoke @ D:\C++\his1-main\his1-main\xitong\src\admin.c:416
+
+[3 ??] status=?
+  found: delete_record_with_revoke @ D:\C++\his1-main\his1-main\xitong\src\admin.c:462
+
+[4 ?????] status=?
+  found: query_records_by_department @ D:\C++\his1-main\his1-main\xitong\src\admin.c:495
+
+[5 ?????] status=?
+  found: query_records_by_doctor @ D:\C++\his1-main\his1-main\xitong\src\admin.c:522
+
+[6 ?????] status=?
+  found: query_records_by_patient_keyword @ D:\C++\his1-main\his1-main\xitong\src\admin.c:548
+
+[7 ???/????] status=?
+  found: view_hospital_financial_report @ D:\C++\his1-main\his1-main\xitong\src\admin.c:1347
+
+[8 ?????] status=?
+  found: analyze_historical_trends @ D:\C++\his1-main\his1-main\xitong\src\admin.c:1390
+  found: view_doctor_statistics @ D:\C++\his1-main\his1-main\xitong\src\doctor.c:709
+
+[9 ??????] status=?
+  found: query_records_in_time_range @ D:\C++\his1-main\his1-main\xitong\src\admin.c:590
+
+[10 ??] status=?
+  found: save_system_data @ D:\C++\his1-main\his1-main\xitong\src\data_manager.c:856
+
+[11 ???] status=?
+  found: patient_subsystem @ D:\C++\his1-main\his1-main\xitong\src\patient.c:545
+  found: patient_login @ D:\C++\his1-main\his1-main\xitong\src\patient.c:33
+  found: register_new_patient @ D:\C++\his1-main\his1-main\xitong\src\patient.c:454
+  found: view_personal_info @ D:\C++\his1-main\his1-main\xitong\src\patient.c:420
+  found: query_medical_records @ D:\C++\his1-main\his1-main\xitong\src\patient.c:501
+  found: patient_top_up @ D:\C++\his1-main\his1-main\xitong\src\patient.c:485
+  found: patient_pay_bill @ D:\C++\his1-main\his1-main\xitong\src\patient.c:375
+  found: check_queue_status @ D:\C++\his1-main\his1-main\xitong\src\patient.c:289
+  found: patient_self_register @ D:\C++\his1-main\his1-main\xitong\src\patient.c:130
+  found: call_ambulance_service @ D:\C++\his1-main\his1-main\xitong\src\patient.c:338
+  found: generate_electronic_invoice @ D:\C++\his1-main\his1-main\xitong\src\patient.c:533
+
+[12 ???] status=?
+  found: doctor_subsystem @ D:\C++\his1-main\his1-main\xitong\src\doctor.c:155
+  found: view_my_queue @ D:\C++\his1-main\his1-main\xitong\src\doctor.c:312
+  found: call_next_patient @ D:\C++\his1-main\his1-main\xitong\src\doctor.c:341
+  found: prescribe_medicine_advanced @ D:\C++\his1-main\his1-main\xitong\src\doctor.c:635
+  found: dispense_medicine_service @ D:\C++\his1-main\his1-main\xitong\src\doctor.c:671
+  found: prescribe_checkup_service @ D:\C++\his1-main\his1-main\xitong\src\doctor.c:509
+  found: generate_checkup_report @ D:\C++\his1-main\his1-main\xitong\src\doctor.c:529
+  found: admission_service @ D:\C++\his1-main\his1-main\xitong\src\doctor.c:384
+  found: book_surgery_service @ D:\C++\his1-main\his1-main\xitong\src\doctor.c:453
+  found: transfer_patient_to_icu @ D:\C++\his1-main\his1-main\xitong\src\doctor.c:593
+
+[13 ???] status=?
+  found: admin_subsystem @ D:\C++\his1-main\his1-main\xitong\src\admin.c:1109
+  found: register_doctor @ D:\C++\his1-main\his1-main\xitong\src\admin.c:1197
+  found: delete_doctor @ D:\C++\his1-main\his1-main\xitong\src\admin.c:1249
+  found: manage_duty_schedule @ D:\C++\his1-main\his1-main\xitong\src\admin.c:640
+  found: medicine_stock_in @ D:\C++\his1-main\his1-main\xitong\src\admin.c:1286
+  found: view_inventory_report @ D:\C++\his1-main\his1-main\xitong\src\admin.c:1323
+
+[14 ????] status=?
+  found: ambulance_subsystem @ D:\C++\his1-main\his1-main\xitong\src\ambulance.c:51
+  found: add_ambulance_log @ D:\C++\his1-main\his1-main\xitong\src\data_manager.c:549
+
+[15 ?????] status=?
+  found: save_system_data @ D:\C++\his1-main\his1-main\xitong\src\data_manager.c:856
+
+[16 ???] status=?
+  found: manage_operating_rooms @ D:\C++\his1-main\his1-main\xitong\src\admin.c:876
+  found: optimize_bed_allocation @ D:\C++\his1-main\his1-main\xitong\src\admin.c:1423
+
+[realtime_save_hits]
+  D:\C++\his1-main\his1-main\xitong\src\ambulance.c:142 save_ambulances("data/ambulances.txt");
+  D:\C++\his1-main\his1-main\xitong\src\ambulance.c:143 save_ambulances("data/ambulance.txt");
+  D:\C++\his1-main\his1-main\xitong\src\ambulance.c:144 save_ambulance_logs("data/ambulance_logs.txt");
+  D:\C++\his1-main\his1-main\xitong\src\ambulance.c:168 save_ambulances("data/ambulances.txt");
+  D:\C++\his1-main\his1-main\xitong\src\ambulance.c:169 save_ambulances("data/ambulance.txt");
+  D:\C++\his1-main\his1-main\xitong\src\ambulance.c:173 save_ambulances("data/ambulances.txt");
+  D:\C++\his1-main\his1-main\xitong\src\ambulance.c:174 save_ambulances("data/ambulance.txt");
+  D:\C++\his1-main\his1-main\xitong\src\admin.c:797 save_ambulances("data/ambulances.txt");
+  D:\C++\his1-main\his1-main\xitong\src\admin.c:798 save_ambulances("data/ambulance.txt");
+  D:\C++\his1-main\his1-main\xitong\src\admin.c:799 save_ambulance_logs("data/ambulance_logs.txt");
+  D:\C++\his1-main\his1-main\xitong\src\admin.c:815 save_ambulances("data/ambulances.txt");
+  D:\C++\his1-main\his1-main\xitong\src\admin.c:816 save_ambulances("data/ambulance.txt");
+  D:\C++\his1-main\his1-main\xitong\src\admin.c:818 save_ambulances("data/ambulances.txt");
+  D:\C++\his1-main\his1-main\xitong\src\admin.c:819 save_ambulances("data/ambulance.txt");
+  D:\C++\his1-main\his1-main\xitong\src\data_manager.c:566 save_ambulance_logs("data/ambulance_logs.txt");
+  D:\C++\his1-main\his1-main\xitong\src\data_manager.c:864 save_ambulances("data/ambulances.txt");
+  D:\C++\his1-main\his1-main\xitong\src\data_manager.c:865 save_ambulances("data/ambulance.txt");
+  D:\C++\his1-main\his1-main\xitong\src\data_manager.c:866 save_ambulance_logs("data/ambulance_logs.txt");

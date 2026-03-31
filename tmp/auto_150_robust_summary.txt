@@ -1,0 +1,8 @@
+﻿mode=robust-invalid-input-stress
+total=150
+failed=0
+duration_sec=54.03
+timestamp=2026-03-31 20:28:15
+vehicle_usage:
+AMB-A01=79
+AMB-A02=71
