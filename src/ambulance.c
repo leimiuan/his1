@@ -1,266 +1,297 @@
-﻿#include <stdio.h>
+﻿#include "ambulance.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "common.h"
 #include "data_manager.h"
-#include "ambulance.h"
 #include "utils.h"
 
 /* ==========================================
- * 銆愭柊澧炲紩鐢ㄣ€戜负浜嗘弧瓒冲姛鑳借姹傦紝鍦ㄦ鎷夊彇搴曞眰鍑哄嫟鏃ュ織涓庢墜鏈缁撴瀯
+ * 新增扩展节点定义：用于出勤日志与手术室联动展示
  * ========================================== */
 #ifndef HIS_EXT_NODES_DEFINED
 #define HIS_EXT_NODES_DEFINED
-// 1. 鏁戞姢杞﹀嚭鍕ゆ棩蹇楄妭鐐?
+// 1. 救护车出勤日志节点
 typedef struct AmbulanceLogNode {
-    char log_id[32];            // 鏃ュ織鍗曞彿 (濡?ALB1711693450)
-    char vehicle_id[32];        // 娲惧嚭鐨勮溅杈嗙紪鍙?
-    char dispatch_time[32];     // 娲惧彂鏃堕棿
-    char destination[128];      // 浠诲姟鐩殑鍦?
-    struct AmbulanceLogNode* next;
+  char log_id[32];         // 日志单号 (例如 ALB1711693450)
+  char vehicle_id[32];     // 派出的车辆编号
+  char dispatch_time[32];  // 派发时间
+  char destination[128];   // 任务目的地
+  struct AmbulanceLogNode* next;
 } AmbulanceLogNode;
 
-// 2. 鎵嬫湳瀹よ妭鐐?(鎬ユ晳鑱斿姩浣跨敤锛氭柟渚胯皟搴﹀憳棰勫垽鎶㈡晳瀹ゆ槸鍚︽湁绌轰綅)
+// 2. 手术室节点（急救联动使用，便于预判抢救室是否有空位）
 typedef struct OperatingRoomNode {
-    char room_id[32];           // 鎵嬫湳瀹ょ紪鍙?(濡?OR-01)
-    int status;                 // 0: 绌洪棽, 1: 鎵嬫湳涓? 2: 娑堟瘨缁存姢
-    char current_patient[32];   // 褰撳墠鎮ｈ€?
-    char current_doctor[32];    // 涓诲垁鍖荤敓
-    struct OperatingRoomNode* next;
+  char room_id[32];          // 手术室编号 (例如 OR-01)
+  int status;                // 0: 空闲, 1: 手术中, 2: 消毒维护
+  char current_patient[32];  // 当前患者
+  char current_doctor[32];   // 主刀医生
+  struct OperatingRoomNode* next;
 } OperatingRoomNode;
 #endif
 
 /* ==========================================
- * 鍏ㄥ眬鏁版嵁閾捐〃澶存寚閽?(浣跨敤 extern 寮曠敤)
- * 瀹為檯瀹氫箟鍦ㄥ叾浠栨枃浠讹紙濡?data_manager.c锛変腑銆?
+ * 全局数据链表头指针（通过 extern 引用）
+ * 实际定义位于其他文件（如 data_manager.c）
  * ========================================== */
-extern AmbulanceNode* ambulance_head;        // 鍘熸湁鐨勫疄鏃惰溅杈嗙姸鎬侀摼琛ㄥご鎸囬拡
-extern AmbulanceLogNode* ambulance_log_head; // 銆愭柊澧炪€戝嚭鍕よ褰曡〃澶存寚閽?
-extern OperatingRoomNode* or_head;           // 銆愭柊澧炪€戞墜鏈鑱斿姩澶存寚閽?
+extern AmbulanceNode* ambulance_head;         // 原有的救护车实时状态链表头指针
+extern AmbulanceLogNode* ambulance_log_head;  // 新增：出勤记录表头指针
+extern OperatingRoomNode* or_head;            // 新增：手术室联动链表头指针
 
-// 澹版槑澶栭儴璁板綍鏃ュ織鐨勫簳灞傚伐鍘傚嚱鏁?(鍦?data_manager.c 涓疄鐜?
+// 声明外部日志写入函数（在 data_manager.c 中实现）
 extern void add_ambulance_log(const char* vehicle_id, const char* destination);
-// 銆愯法妯″潡鑱斿姩澹版槑銆戯細寮曞叆鎸傚彿鐢熸垚寮曟搸锛岀敤浜庢晳鎶よ溅鍥炲満鏃惰嚜鍔ㄦ媺璧锋€ヨ瘖閫氶亾
-extern void add_new_record(const char* patient_id, const char* doctor_id, RecordType type, const char* description, double fee, int queue_num);
+// 跨模块联动：引入挂号记录创建接口，用于车辆回场后快速接入急诊流程
+extern void add_new_record(const char* patient_id, const char* doctor_id,
+                           RecordType type, const char* description, double fee,
+                           int queue_num);
 
 /**
- * @brief 120 鏁戞姢杞︽櫤鎱ц皟搴﹀瓙绯荤粺鐨勪富鍏ュ彛
- * 鎻愪緵浜や簰寮忕殑鑿滃崟锛岀敤浜庡鍖婚櫌鐨勬晳鎶よ溅闃熻繘琛屽疄鏃剁洃鎺с€佺揣鎬ユ淳鍙戝拰鍥炲満绠＄悊銆?
- * (宸叉垚鍔熸墿鍏呭嚭鍕よ〃鍜屾墜鏈鑱斿姩)
+ * @brief 120 救护车智能调度子系统主入口
+ * 提供交互式菜单，用于救护车实时监控、紧急派单和回场管理。
+ * 已扩展：出勤记录查询、急诊手术室联动查询。
  */
 void ambulance_subsystem() {
-    int choice = -1;
-    
-    // 涓绘帶寰幆锛岀洿鍒扮敤鎴烽€夋嫨 0 (閫€鍑? 鎵嶇粨鏉?
-    while (choice != 0) {
-        clear_input_buffer(); // 娓呯悊杈撳叆缂撳啿鍖猴紝闃叉娈嬬暀瀛楃瀵艰嚧鑿滃崟涔辫烦
-        
-        // 鎵撳嵃绯荤粺鑿滃崟鍙婂ご閮?UI
-        print_header("120 鏁戞姢杞︽櫤鎱ц皟搴︿腑蹇?(鍚嚭鍕よ〃涓庢€ユ晳鑱斿姩)");
-        printf("  [ 1 ] 鏌ョ湅鍏ㄩ櫌鏁戞姢杞﹀疄鏃剁洃鎺n");
-        printf("  [ 2 ] 绱ф€ユ淳鍗曞嚭杞?(120璋冨害) + 鑷姩璁板叆鍑哄嫟琛╘n");
-        printf("  [ 3 ] 杞﹁締鍥炲満鍙婃秷姣掔櫥璁?(+ " COLOR_RED "鍗遍噸鎮ｈ€呯豢鑹查€氶亾" COLOR_RESET ")\n");
-        printf("  [ 4 ] 鏌ョ湅鏁戞姢杞﹀巻鍙插嚭鍕よ〃 (銆愭柊澧炲姛鑳姐€?\n"); 
-        printf("  [ 5 ] 鑱斿姩锛氭煡鐪嬫€ヨ瘖鎵嬫湳瀹ゅ疄鏃剁┖闂茬姸鎬?(銆愭柊澧炲姛鑳姐€?\n"); 
-        printf(COLOR_RED "  [ 0 ] 杩斿洖琛屾斂绠＄悊涓績\n" COLOR_RESET);
+  int choice = -1;
+
+  // 主循环：直到用户选择 0（退出）才结束
+  while (choice != 0) {
+    clear_input_buffer();  // 清理输入缓冲区，防止残留字符导致菜单跳转异常
+
+    // 打印系统菜单与头部 UI
+    print_header("120 救护车智能调度中心（含出勤记录与急救联动）");
+    printf("  [ 1 ] 查看全院救护车实时监控\n");
+    printf("  [ 2 ] 紧急派单出车(120调度) + 自动写入出勤记录\n");
+    printf("  [ 3 ] 车辆回场与消毒登记(+ " COLOR_RED
+           "危重患者绿色通道" COLOR_RESET ")\n");
+    printf("  [ 4 ] 查看救护车历史出勤记录（新增）\n");
+    printf("  [ 5 ] 联动：查看急诊手术室实时空闲状态（新增）\n");
+    printf(COLOR_RED "  [ 0 ] 返回行政管理中心\n" COLOR_RESET);
+    print_divider();
+
+    printf(COLOR_YELLOW "请输入操作指令(0-5): " COLOR_RESET);
+    choice = safe_get_int();  // 安全读取用户输入的整型选项
+
+    // 根据用户输入进行业务分发
+    switch (choice) {
+      case 1: {
+        // ==========================================
+        // 业务 1：查看救护车队实时状态
+        // ==========================================
+        print_header("救护车队实时状态");
+        // 打印表头并对齐
+        printf("%-12s %-12s %-10s %-25s\n", "车牌/编号", "随车司机", "当前状态",
+               "GPS 实时位置");
         print_divider();
-        
-        printf(COLOR_YELLOW "璇疯緭鍏ユ搷浣滄寚浠?(0-5): " COLOR_RESET);
-        choice = safe_get_int(); // 瀹夊叏鑾峰彇鐢ㄦ埛杈撳叆鐨勬暣鍨嬮€夐」
 
-        // 鏍规嵁鐢ㄦ埛杈撳叆杩涜涓氬姟璺敱鍒嗗彂
-        switch (choice) {
-            case 1: {
-                // ==========================================
-                // 涓氬姟 1锛氬叏鏅湅鏉?- 鏌ョ湅鏁戞姢杞﹂槦瀹炴椂鐘舵€?
-                // ==========================================
-                print_header("救护车队实时状态");
-                // 鎵撳嵃琛ㄥご锛屼繚鎸佸榻?
-                printf("%-12s %-12s %-10s %-25s\n", "车牌/编号", "随车司机", "当前状态", "GPS 实时位置");
-                print_divider();
-                
-                AmbulanceNode* curr = ambulance_head; // 浠庨摼琛ㄥご閮ㄥ紑濮嬮亶鍘?
-                int count = 0;
-                
-                while (curr) {
-                    const char* st_text;
-                    // 鏍规嵁杞﹁締鐨勭姸鎬佹灇涓?AMB_IDLE, AMB_DISPATCHED 绛?鏄犲皠涓哄甫棰滆壊鐨勭粓绔枃鏈?
-                    if (curr->status == AMB_IDLE) {
-                        st_text = COLOR_GREEN "绌洪棽寰呭懡" COLOR_RESET;  // 缁胯壊浠ｈ〃鍙敤
-                    } else if (curr->status == AMB_DISPATCHED) {
-                        st_text = COLOR_RED "鎵ц浠诲姟" COLOR_RESET;    // 绾㈣壊浠ｈ〃姝ｅ繖
-                    } else {
-                        st_text = COLOR_YELLOW "缁翠繚娑堟瘨" COLOR_RESET; // 榛勮壊浠ｈ〃涓嶅彲鐢ㄤ絾闈炲嚭杞︾姸鎬?
-                    }
-                    
-                    // 鏍煎紡鍖栬緭鍑哄綋鍓嶈溅杈嗙殑鍏蜂綋淇℃伅
-                    printf("%-12s %-12s %-10s %-25s\n", curr->vehicle_id, curr->driver_name, st_text, curr->current_location);
-                    
-                    curr = curr->next; // 鎸囬拡鍚庣Щ
-                    count++;           // 璁板綍褰撳墠绯荤粺涓溅杈嗙殑鎬绘暟
-                }
-                
-                // 瀹归敊澶勭悊锛氬鏋滈摼琛ㄤ负绌猴紝缁欎簣鍙嬪ソ鐨勬彁绀?
-                if (count == 0) {
-                    printf(COLOR_YELLOW "褰撳墠绯荤粺鍐呭皻鏈綍鍏ヤ换浣曟晳鎶よ溅鏁版嵁銆俓n" COLOR_RESET);
-                }
-                wait_for_enter(); // 鏆傚仠锛岀瓑寰呯敤鎴锋寜鍥炶溅缁х画
-                break;
-            }
-            case 2: {
-                // ==========================================
-                // 涓氬姟 2锛氱揣鎬ュ嚭杞︽淳鍗?- 鏀瑰彉杞﹁締鐘舵€佸苟鏇存柊浣嶇疆
-                // ==========================================
-                printf("璇疯緭鍏ラ渶璋冨害鐨勭┖闂茶溅杈嗙紪鍙? ");
-                char vid[MAX_ID_LEN]; 
-                safe_get_string(vid, MAX_ID_LEN);
-                
-                // 鍦ㄩ摼琛ㄤ腑鏌ユ壘鍖归厤鐨勮溅杈嗚妭鐐?
-                AmbulanceNode* target = ambulance_head;
-                while (target && strcmp(target->vehicle_id, vid) != 0) {
-                    target = target->next;
-                }
-                
-                // 杈圭晫涓庣姸鎬佹牎楠?
-                if (!target) {
-                    // 鎵句笉鍒板搴旂殑杞﹁締
-                    printf(COLOR_RED "閿欒锛氭湭鎵惧埌璇ヨ溅杈嗐€俓n" COLOR_RESET);
-                } else if (target->status != AMB_IDLE) {
-                    // 鏍稿績涓氬姟瑙勫垯锛氬彧鏈夊浜?绌洪棽寰呭懡"鐘舵€佺殑杞︽墠鑳借娲惧彂锛岄槻姝㈣祫婧愬啿绐?
-                    printf(COLOR_RED "椹冲洖锛氳杞﹁締褰撳墠涓嶅湪绌洪棽鐘舵€侊紝鏃犳硶娲惧崟銆俓n" COLOR_RESET);
-                } else {
-                    // 婊¤冻娲惧彂鏉′欢锛岃姹傝緭鍏ョ洰鐨勫湴淇℃伅
-                    printf("璇疯緭鍏ユ€ユ晳鐜板満鍦板潃/GPS瀹氫綅: ");
-                    safe_get_string(target->current_location, 128); // 鏇存柊杞﹁締鐨勫疄鏃朵綅缃俊鎭?
-                    
-                    target->status = AMB_DISPATCHED; // 銆愮姸鎬佹壄杞€戝皢杞﹁締鐘舵€佹壄杞负鈥滄墽琛屼换鍔♀€?
-                    
-                    // 銆愮粷瀵规寚浠よ姹傛鍏ャ€戯細鐘舵€佹壄杞垚鍔熷悗锛岄潤榛樿皟鐢ㄥ簳灞傚嚱鏁板啓鍏モ€滃巻鍙插嚭鍕よ〃鈥?
-                    add_ambulance_log(target->vehicle_id, target->current_location);
+        AmbulanceNode* curr = ambulance_head;  // 从链表头开始遍历
+        int count = 0;
 
+        while (curr) {
+          const char* st_text;
+          // 根据状态码映射为带颜色的终端文本
+          if (curr->status == AMB_IDLE) {
+            st_text = COLOR_GREEN "空闲待命" COLOR_RESET;  // 绿色表示可用
+          } else if (curr->status == AMB_DISPATCHED) {
+            st_text = COLOR_RED "执行任务" COLOR_RESET;  // 红色表示执行任务中
+          } else {
+            st_text = COLOR_YELLOW "维护消毒" COLOR_RESET;  // 黄色表示维护/消毒
+          }
 
-                    save_ambulances("data/ambulances.txt");
-                    save_ambulances("data/ambulance.txt");
-                    save_ambulance_logs("data/ambulance_logs.txt");
-                    printf(COLOR_GREEN "娲惧崟鎴愬姛锛佽溅杈?%s 宸茬揣鎬ュ嚭杞﹀墠寰€ [%s]銆俓n" COLOR_RESET, target->vehicle_id, target->current_location);
-                    printf(COLOR_CYAN "(绯荤粺搴曞眰宸茶嚜鍔ㄦ崟鑾疯鍔ㄤ綔骞跺啓鍏ュ嚭鍕よ皟搴︽棩蹇?\n" COLOR_RESET);
-                }
-                wait_for_enter();
-                break;
-            }
-            case 3: {
-                // ==========================================
-                // 涓氬姟 3锛氬洖鍦虹櫥璁?- 缁撴潫浠诲姟骞堕噴鏀捐溅杈嗚祫婧?(+ 鎬ユ晳缁胯壊閫氶亾鑱斿姩)
-                // ==========================================
-                printf("璇疯緭鍏ュ洖鍦鸿溅杈嗙紪鍙? ");
-                char vid[MAX_ID_LEN]; 
-                safe_get_string(vid, MAX_ID_LEN);
-                
-                // 鍦ㄩ摼琛ㄤ腑鏌ユ壘鍖归厤鐨勮溅杈嗚妭鐐?
-                AmbulanceNode* target = ambulance_head;
-                while (target && strcmp(target->vehicle_id, vid) != 0) {
-                    target = target->next;
-                }
-                
-                // 杈圭晫涓庣姸鎬佹牎楠岋細蹇呴』瀛樺湪涓斿綋鍓嶇姸鎬佸繀椤绘槸"鎵ц浠诲姟"涓?
-                if (target && target->status == AMB_DISPATCHED) {
-                    target->status = AMB_IDLE; // 銆愮姸鎬佹壄杞€戝皢杞﹁締鐘舵€侀噸缃负鈥滅┖闂插緟鍛解€?
-                    save_ambulances("data/ambulances.txt");
-                    save_ambulances("data/ambulance.txt");
-                    
-                    // 妯℃嫙杞﹁締鍥炲満鍚庣殑鐗╃悊浣嶇疆閲嶇疆
-                    strcpy(target->current_location, "医院急救中心停车场");
-                    save_ambulances("data/ambulances.txt");
-                    save_ambulances("data/ambulance.txt");
-                    
-                    printf(COLOR_GREEN "杞﹁締 %s 宸茬‘璁ゅ洖鍦猴紝骞跺凡瀹屾垚鏍囧噯娑堟瘨浣滀笟锛岃浆涓哄緟鍛界姸鎬併€俓n" COLOR_RESET, target->vehicle_id);
+          // 输出当前车辆信息
+          printf("%-12s %-12s %-10s %-25s\n", curr->vehicle_id,
+                 curr->driver_name, st_text, curr->current_location);
 
-                    // ==========================================
-                    // 銆愮绾цˉ涓侊細鎬ヨ瘖缁胯壊閫氶亾鑷姩鑱斿姩銆?
-                    // 璋冨害涓績纭杞﹁締鍥炲満鍚庯紝鐩存帴鎶婇殢杞︽媺鍥炴潵鐨勬偅鑰呭杩涙€ヨ瘖闃熷垪
-                    // ==========================================
-                    printf("\n" COLOR_CYAN ">>> 鏄惁鏈夐殢杞﹁浆杩愮殑鍗遍噸鎮ｈ€呴渶瑕佺珛鍗虫帴鍏ャ€愭€ヨ瘖缁胯壊閫氶亾銆戯紵(1-鏄? 0-鍚?: " COLOR_RESET);
-                    if (safe_get_int() == 1) {
-                        char pid[MAX_ID_LEN], did[MAX_ID_LEN];
-                        printf("璇疯緭鍏ユ偅鑰呯紪鍙?(鑻ュ皻鏈缓妗ｈ鍏堣緭鍏ヤ复鏃剁紪鍙凤紝濡?P-EMG-01): ");
-                        safe_get_string(pid, MAX_ID_LEN);
-                        printf("璇疯緭鍏ヨ礋璐ｆ帴璇婄殑銆愭€ヨ瘖绉戙€戝尰鐢熷伐鍙? ");
-                        safe_get_string(did, MAX_ID_LEN);
-
-                        // 寮哄埗鎷夎捣 RECORD_EMERGENCY (鎬ヨ瘖) 鍗曟嵁锛岀洿鎺ユ帹鍏ュ簳灞傞摼琛?
-                        // 鎬ヨ瘖璇婅垂瀹氫负 50.0 鍏冿紝queue_number 缃?0 (鎬ヨ瘖涓嶆帓鍙凤紝缁濆浼樺厛)
-                        add_new_record(pid, did, RECORD_EMERGENCY, "120鏁戞姢杞︾揣鎬ヨ浆杩愬叆闄?鐢熷懡浣撳緛涓嶇ǔ)", 50.0, 0);
-
-                        printf(COLOR_RED ">>> [鏈€楂樹紭鍏堢骇璀︽姤] 鎮ｈ€?%s 鐨勬€ユ晳妗ｆ宸茬敓鎴愶紒\n" COLOR_RESET, pid);
-                        printf(COLOR_RED ">>> 璇ユ€ヨ瘖鍗曟嵁宸插己鍒舵帹鍏ュ尰鐢?%s 鐨勫€欒瘖澶у睆锛屽苟銆愮疆椤朵寒绾㈢伅銆戯紒\n" COLOR_RESET, did);
-                    }
-
-                } else {
-                    // 濡傛灉杞﹁締涓嶅瓨鍦紝鎴栨湰韬氨鍋滃湪鍖婚櫌閲岋紝鍒欐嫆缁濊鎿嶄綔
-                    printf(COLOR_RED "鎿嶄綔澶辫触锛氭湭鎵惧埌璇ヨ溅锛屾垨杞﹁締鏈浜庢墽琛屼换鍔＄姸鎬併€俓n" COLOR_RESET);
-                }
-                wait_for_enter();
-                break;
-            }
-            case 4: {
-                // ==========================================
-                // 銆愮粷瀵规寚浠よ姹傛鍏ャ€戜笟鍔?4锛氭煡鐪嬫晳鎶よ溅鍘嗗彶鍑哄嫟琛?
-                // ==========================================
-                print_header("120 鏁戞姢杞﹀巻鍙插嚭鍕よ褰曡〃");
-                printf("%-15s %-12s %-22s %-30s\n", "调度单号", "车牌编号", "出勤时间", "目的地");
-                print_divider();
-                
-                AmbulanceLogNode* curr_log = ambulance_log_head;
-                int log_count = 0;
-                
-                // 閬嶅巻骞跺睍绀哄巻鍙插嚭鍕ゆ祦姘?
-                while (curr_log) {
-                    printf("%-15s %-12s %-22s %-30s\n", 
-                           curr_log->log_id, curr_log->vehicle_id, 
-                           curr_log->dispatch_time, curr_log->destination);
-                    curr_log = curr_log->next;
-                    log_count++;
-                }
-                
-                if (log_count == 0) {
-                    printf(COLOR_YELLOW "鏆傛棤鏁戞姢杞﹀嚭鍕ゅ巻鍙茶褰曘€俓n" COLOR_RESET);
-                }
-                wait_for_enter();
-                break;
-            }
-            case 5: {
-                // ==========================================
-                // 銆愮粷瀵规寚浠よ姹傛鍏ャ€戜笟鍔?5锛氳仈鍔ㄦ煡鐪嬫墜鏈鐘舵€?
-                // 鍦烘櫙锛氳皟搴﹀憳鍦ㄦ淳鍑烘晳鎶よ溅鎺ラ噸鐥囨偅鑰呭墠锛屽揩閫熶簡瑙ｆ墜鏈绌轰綅鎯呭喌
-                // ==========================================
-                print_header("联动查询：急诊手术室实时监控");
-                printf("%-10s %-12s %-15s %-15s\n", "手术室", "当前状态", "主刀医生", "患者编号");
-                print_divider();
-                
-                OperatingRoomNode* curr_or = or_head;
-                int or_count = 0;
-                
-                // 閬嶅巻杈撳嚭绯荤粺鍏ㄥ眬鐨勬墜鏈鍔ㄦ€?
-                while (curr_or) {
-                    const char* st_text;
-                    if (curr_or->status == 0) st_text = COLOR_GREEN "绌洪棽寰呭懡" COLOR_RESET;
-                    else if (curr_or->status == 1) st_text = COLOR_RED "手术抢救中" COLOR_RESET;
-                    else st_text = COLOR_YELLOW "娑堟瘨缁存姢" COLOR_RESET;
-                    
-                    printf("%-10s %-12s %-15s %-15s\n", curr_or->room_id, st_text, curr_or->current_doctor, curr_or->current_patient);
-                    curr_or = curr_or->next;
-                    or_count++;
-                }
-                
-                if (or_count == 0) {
-                    printf(COLOR_YELLOW "褰撳墠绯荤粺灏氭湭鍒濆鍖栨墜鏈鏁版嵁锛屾垨鏃犲彲鐢ㄦ墜鏈銆俓n" COLOR_RESET);
-                }
-                wait_for_enter();
-                break;
-            }
+          curr = curr->next;  // 指针后移
+          count++;            // 记录车辆总数
         }
+
+        // 容错：链表为空时给出提示
+        if (count == 0) {
+          printf(COLOR_YELLOW "当前系统尚未录入任何救护车数据。\n" COLOR_RESET);
+        }
+        wait_for_enter();  // 暂停，等待用户回车
+        break;
+      }
+      case 2: {
+        // ==========================================
+        // 业务 2：紧急派单出车，更新车辆状态与位置
+        // ==========================================
+        printf("请输入需要调度的空闲车辆编号: ");
+        char vid[MAX_ID_LEN];
+        safe_get_string(vid, MAX_ID_LEN);
+
+        // 在链表中查找匹配车辆
+        AmbulanceNode* target = ambulance_head;
+        while (target && strcmp(target->vehicle_id, vid) != 0) {
+          target = target->next;
+        }
+
+        // 边界与状态校验
+        if (!target) {
+          // 未找到对应车辆
+          printf(COLOR_RED "错误：未找到该车辆。\n" COLOR_RESET);
+        } else if (target->status != AMB_IDLE) {
+          // 仅空闲车辆允许派发，防止资源冲突
+          printf(COLOR_RED
+                 "驳回：该车辆当前不在空闲状态，无法派单。\n" COLOR_RESET);
+        } else {
+          // 满足派发条件，采集目的地并更新状态
+          printf("请输入急救现场地址/GPS定位: ");
+          safe_get_string(target->current_location, 128);  // 更新实时位置
+
+          target->status = AMB_DISPATCHED;  // 状态切换为“执行任务”
+
+          // 状态切换成功后，写入历史出勤日志
+          add_ambulance_log(target->vehicle_id, target->current_location);
+
+          save_ambulances("data/ambulances.txt");
+          save_ambulances("data/ambulance.txt");
+          save_ambulance_logs("data/ambulance_logs.txt");
+          printf(COLOR_GREEN
+                 "派单成功！车辆 %s 已紧急出车前往 [%s]。\n" COLOR_RESET,
+                 target->vehicle_id, target->current_location);
+          printf(COLOR_CYAN "(系统已自动记录该次出勤调度日志)\n" COLOR_RESET);
+        }
+        wait_for_enter();
+        break;
+      }
+      case 3: {
+        // ==========================================
+        // 业务 3：回场登记，结束任务并释放车辆资源（含急救联动）
+        // ==========================================
+        printf("请输入回场车辆编号: ");
+        char vid[MAX_ID_LEN];
+        safe_get_string(vid, MAX_ID_LEN);
+
+        // 在链表中查找匹配车辆
+        AmbulanceNode* target = ambulance_head;
+        while (target && strcmp(target->vehicle_id, vid) != 0) {
+          target = target->next;
+        }
+
+        // 校验：车辆存在且当前状态为“执行任务”
+        if (target && target->status == AMB_DISPATCHED) {
+          target->status = AMB_IDLE;  // 状态重置为“空闲待命”
+          save_ambulances("data/ambulances.txt");
+          save_ambulances("data/ambulance.txt");
+
+          // 模拟车辆回场后的位置重置
+          strcpy(target->current_location, "医院急救中心停车场");
+          save_ambulances("data/ambulances.txt");
+          save_ambulances("data/ambulance.txt");
+
+          printf(
+              COLOR_GREEN
+              "车辆 %s "
+              "已确认回场，并已完成标准消毒作业，转为待命状态。\n" COLOR_RESET,
+              target->vehicle_id);
+
+          // ==========================================
+          // 急诊绿色通道自动联动
+          // 车辆回场后，可将随车危重患者直接接入急诊队列
+          // ==========================================
+          printf(
+              "\n" COLOR_CYAN
+              ">>> 是否有随车转运的危重患者需要立即接入【急诊绿色通道】？(1-是 "
+              "0-否): " COLOR_RESET);
+          if (safe_get_int() == 1) {
+            char pid[MAX_ID_LEN], did[MAX_ID_LEN];
+            printf(
+                "请输入患者编号(若尚未建档，请先输入临时编号，如 P-EMG-01): ");
+            safe_get_string(pid, MAX_ID_LEN);
+            printf("请输入负责接诊的【急诊科】医生工号: ");
+            safe_get_string(did, MAX_ID_LEN);
+
+            // 强制创建 RECORD_EMERGENCY 急诊记录并推入底层记录链表
+            // 急诊费固定 50.0 元，queue_number=0 表示急诊优先
+            add_new_record(pid, did, RECORD_EMERGENCY,
+                           "120救护车紧急转运入院(生命体征不稳)", 50.0, 0);
+
+            printf(
+                COLOR_RED
+                ">>> [最高优先级警报] 患者 %s 的急救档案已生成！\n" COLOR_RESET,
+                pid);
+            printf(COLOR_RED
+                   ">>> 该急诊单据已强制推送至医生 %s "
+                   "的候诊屏，并【置顶亮红灯】！\n" COLOR_RESET,
+                   did);
+          }
+
+        } else {
+          // 车辆不存在或未处于任务状态，拒绝回场登记
+          printf(COLOR_RED
+                 "操作失败：未找到该车辆，或车辆未处于执行任务状态。"
+                 "\n" COLOR_RESET);
+        }
+        wait_for_enter();
+        break;
+      }
+      case 4: {
+        // ==========================================
+        // 业务 4：查看救护车历史出勤记录
+        // ==========================================
+        print_header("120 救护车历史出勤记录");
+        printf("%-15s %-12s %-22s %-30s\n", "调度单号", "车牌编号", "出勤时间",
+               "目的地");
+        print_divider();
+
+        AmbulanceLogNode* curr_log = ambulance_log_head;
+        int log_count = 0;
+
+        // 遍历并输出历史出勤流水
+        while (curr_log) {
+          printf("%-15s %-12s %-22s %-30s\n", curr_log->log_id,
+                 curr_log->vehicle_id, curr_log->dispatch_time,
+                 curr_log->destination);
+          curr_log = curr_log->next;
+          log_count++;
+        }
+
+        if (log_count == 0) {
+          printf(COLOR_YELLOW "暂无救护车出勤历史记录。\n" COLOR_RESET);
+        }
+        wait_for_enter();
+        break;
+      }
+      case 5: {
+        // ==========================================
+        // 业务 5：联动查询急诊手术室实时状态
+        // 场景：派车接危重患者前，先快速确认手术室空位情况
+        // ==========================================
+        print_header("联动查询：急诊手术室实时监控");
+        printf("%-10s %-12s %-15s %-15s\n", "手术室", "当前状态", "主刀医生",
+               "患者编号");
+        print_divider();
+
+        OperatingRoomNode* curr_or = or_head;
+        int or_count = 0;
+
+        // 遍历输出全部手术室状态
+        while (curr_or) {
+          const char* st_text;
+          if (curr_or->status == 0)
+            st_text = COLOR_GREEN "空闲待命" COLOR_RESET;
+          else if (curr_or->status == 1)
+            st_text = COLOR_RED "手术抢救中" COLOR_RESET;
+          else
+            st_text = COLOR_YELLOW "消毒维护" COLOR_RESET;
+
+          printf("%-10s %-12s %-15s %-15s\n", curr_or->room_id, st_text,
+                 curr_or->current_doctor, curr_or->current_patient);
+          curr_or = curr_or->next;
+          or_count++;
+        }
+
+        if (or_count == 0) {
+          printf(
+              COLOR_YELLOW
+              "当前系统尚未初始化手术室数据，或无可用手术室。\n" COLOR_RESET);
+        }
+        wait_for_enter();
+        break;
+      }
     }
+  }
 }
-
-
-
