@@ -1,0 +1,5 @@
+﻿Project=D:\C++\his1-main\xitong
+CaseDir=D:\C++\HIS_C\qa_xitong\tmp
+Rounds=5
+Fails=0
+Time=2026-03-31 19:05:44
