@@ -1,0 +1,19 @@
+﻿FULL_TEST_TOTAL=14
+FULL_TEST_PASS=0
+FULL_TEST_FAIL=14
+TIME=2026-04-09 13:14:43
+---DETAIL---
+[FAIL] main_invalid_input | Missing: 无效输入或超限 | 系统已安全退出 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\01_main_invalid_input.txt
+[FAIL] patient_register_new | Missing: 挂号新患者 | 患者建档成功 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\02_patient_register_new.txt
+[FAIL] patient_login_not_found | Missing: 未找到该患者 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\03_patient_login_not_found.txt
+[FAIL] patient_info_and_finance | Missing: 个人信息 | 费用统计 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\04_patient_info_and_finance.txt
+[FAIL] patient_topup_invalid_then_ok | Missing: 金额异常 | 充值成功 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\05_patient_topup_invalid_then_ok.txt
+[FAIL] doctor_auth_fail | Missing: 鉴权失败 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\06_doctor_auth_fail.txt
+[FAIL] doctor_login_basic_views | Missing: 医生控制台 | 我的候诊队列 | 医生个人业务统计 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\07_doctor_login_basic_views.txt
+[FAIL] admin_wrong_password | Missing: 密码错误 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\08_admin_wrong_password.txt
+[FAIL] admin_nurse_register_delete | Missing: 注册新护士账号 | 注册成功 | 注销护士账号 | 已移除 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\09_admin_nurse_register_delete.txt
+[FAIL] admin_medicine_add_and_inventory | Missing: 新增药品档案 | 新增成功 | 库存审计 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\10_admin_medicine_add_and_inventory.txt
+[FAIL] ambulance_center_basic | Missing: 120 救护车智慧调度中心 | 救护车队实时状态 | 未找到该车辆 | 历史出勤 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\11_ambulance_center_basic.txt
+[FAIL] nurse_auth_fail | Missing: 鉴权失败 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\12_nurse_auth_fail.txt
+[FAIL] nurse_login_round_and_vitals | Missing: 护士控制台 | 病区床位与患者巡查 | 录入生命体征 | 查无此住院患者 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\13_nurse_login_round_and_vitals.txt
+[FAIL] main_invalid_numeric | Missing: 无效选项 | 系统已安全退出 | Output: D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest\outputs\14_main_invalid_numeric.txt

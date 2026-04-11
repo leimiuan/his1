@@ -1,0 +1,19 @@
+﻿FULL_TEST_TOTAL=14
+FULL_TEST_PASS=14
+FULL_TEST_FAIL=0
+TIME=2026-04-09 13:33:58
+---DETAIL---
+[PASS] build_fulltest_exe | Compile+link ok
+[PASS] main_invalid_then_exit | exit=0 out=D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest_restart\outputs\main_invalid_then_exit.out.txt
+[PASS] patient_register_new | newPatientId=P20260409003
+[PASS] patient_topup_100 | balance 0 -> 100
+[PASS] admin_nurse_add_delete | count stable=20
+[PASS] admin_doctor_add_delete | count stable=101
+[PASS] admin_add_schedule_today | schedule exists
+[PASS] patient_register_d001 | registration record created
+[PASS] doctor_call_and_admission_cancel | patient remains outpatient
+[PASS] ambulance_basic | exit=0 out=D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest_restart\outputs\ambulance_basic.out.txt
+[PASS] nurse_login_round_vitals_invalid_patient | exit=0 out=D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest_restart\outputs\nurse_login_round_vitals_invalid_patient.out.txt
+[PASS] admin_query_time_range | exit=0 out=D:\C++\his1-1\last_his-4-7-15-27\tmp_fulltest_restart\outputs\admin_query_time_range.out.txt
+[PASS] allow_negative_probe | safe_get_double_allow_negative returns -1.00
+[PASS] restore_data | data restored from backup
